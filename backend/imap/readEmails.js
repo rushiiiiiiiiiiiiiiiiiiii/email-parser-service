@@ -22,7 +22,6 @@ async function readEmails() {
   try {
     connection = await imaps.connect(config);
 
-    // 🔴 VERY IMPORTANT: handle IMAP socket errors
     connection.imap.on("error", (err) => {
       console.error("IMAP socket error:", err.message);
     });

@@ -11,7 +11,6 @@ app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
 
-// Check inbox every 60 seconds
 setInterval(() => {
   readEmails().catch(err => {
     console.error("Email read error:", err.message);
