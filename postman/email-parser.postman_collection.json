@@ -1,0 +1,87 @@
+{
+  "info": {
+    "_postman_id": "9352c9bf-e01d-420e-944e-6c986caa65ac",
+    "name": "Email Parser API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "37175237"
+  },
+  "item": [
+    {
+      "name": "Create Email",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"subject\": \"Postman Test Email\",\r\n  \"body\": \"This email was added using Postman for testing.\",\r\n  \"sender\": \"test@example.com\",\r\n  \"received_at\": \"2026-01-23T10:30:00.000Z\"\r\n}\r\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:5000/emails",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "5000",
+          "path": [
+            "emails"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get All Emails",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:5000/emails?page=1&limit=10",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "5000",
+          "path": [
+            "emails"
+          ],
+          "query": [
+            {
+              "key": "page",
+              "value": "1"
+            },
+            {
+              "key": "limit",
+              "value": "10"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Email By ID",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:5000/emails/69729a44e1f614eb388f863c",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "5000",
+          "path": [
+            "emails",
+            "69729a44e1f614eb388f863c"
+          ]
+        }
+      },
+      "response": []
+    }
+  ]
+}
