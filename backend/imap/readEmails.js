@@ -56,7 +56,6 @@ async function readUnreadEmails(connection) {
         const parsedEmail = await simpleParser(rawEmail);
         const messageId = parsedEmail.messageId;
 
-        // HTML to TEXT 
         let bodyContent = "(No email content)";
 
         if (parsedEmail.text) {
@@ -77,7 +76,7 @@ async function readUnreadEmails(connection) {
           received_at: parsedEmail.date || new Date(),
         });
 
-        const uid = item.attribute.uid;
+        const uid = item.attributes.uid;
         await connection.imap.addFlags(uid, ["\\Seen"]);
 
         console.log(" Email saved:", parsedEmail.subject);
