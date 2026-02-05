@@ -9,25 +9,39 @@ const config = {
     host: process.env.IMAP_HOST,
     port: process.env.IMAP_PORT,
     tls: true,
-    tlsOptions: {
-      rejectUnauthorized: false,
-    },
+    tlsOptions: { rejectUnauthorized: false },
     authTimeout: 3000,
   },
 };
 
-async function readEmails() {
+async function startEmailListener() {
   let connection;
 
   try {
     connection = await imaps.connect(config);
+    console.log("IMAP connected");
 
-    connection.imap.on("error", (err) => {
-      console.error("IMAP socket error:", err.message);
+    connection.imap.on("error", err => {
+      console.error("IMAP error:", err.message);
     });
 
     await connection.openBox("INBOX");
+    console.log("Inbox opened, waiting for new emails...");
 
+    connection.imap.on("mail", async () => {
+      console.log("📩 New email detected");
+      await readUnreadEmails(connection);
+    });
+
+    await readUnreadEmails(connection);
+
+  } catch (err) {
+    console.error("IMAP connection failed:", err.message);
+  }
+}
+
+async function readUnreadEmails(connection) {
+  try {
     const searchCriteria = ["UNSEEN"];
     const fetchOptions = {
       bodies: [""],
@@ -52,22 +66,16 @@ async function readEmails() {
           sender: parsedEmail.from?.text || "Unknown sender",
           received_at: parsedEmail.date || new Date(),
         });
+
+        console.log("✅ Email saved:", parsedEmail.subject);
+
       } catch (emailError) {
-        // 👇 email-level failure should NOT crash the service
-        console.error("Email read error:", emailError.message);
+        console.error("Email parse error:", emailError.message);
       }
     }
   } catch (err) {
-    console.error("IMAP connection error:", err.message);
-  } finally {
-    if (connection) {
-      try {
-        await connection.end();
-      } catch {
-        console.warn("IMAP connection already closed");
-      }
-    }
+    console.error("Failed to read emails:", err.message);
   }
 }
 
-module.exports = readEmails;
+module.exports = startEmailListener;

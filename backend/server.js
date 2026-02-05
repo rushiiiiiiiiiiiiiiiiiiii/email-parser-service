@@ -1,7 +1,7 @@
 require("dotenv").config();
 const app = require("./app");
 const connectDB = require("./config/db");
-const readEmails = require("./imap/readEmails");
+const startEmailListener = require("./imap/readEmails");
 
 connectDB();
 
@@ -11,8 +11,6 @@ app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
 
-setInterval(() => {
-  readEmails().catch(err => {
-    console.error("Email read error:", err.message);
-  });
-}, 60000);
+startEmailListener().catch(err => {
+  console.error("Failed to start email listener:", err.message);
+});
