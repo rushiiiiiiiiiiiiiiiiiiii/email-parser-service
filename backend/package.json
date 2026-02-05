@@ -13,6 +13,7 @@
     "cors": "^2.8.6",
     "dotenv": "^17.2.3",
     "express": "^5.2.1",
+    "html-to-text": "^9.0.5",
     "imap-simple": "^5.1.0",
     "mailparser": "^3.9.1",
     "mongoose": "^9.1.5",

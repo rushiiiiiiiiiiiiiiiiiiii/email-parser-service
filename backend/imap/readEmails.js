@@ -1,6 +1,7 @@
 const imaps = require("imap-simple");
 const { simpleParser } = require("mailparser");
 const Email = require("../models/Email");
+const { htmlToText } = require("html-to-text");
 
 const config = {
   imap: {
@@ -21,7 +22,7 @@ async function startEmailListener() {
     connection = await imaps.connect(config);
     console.log("IMAP connected");
 
-    connection.imap.on("error", err => {
+    connection.imap.on("error", (err) => {
       console.error("IMAP error:", err.message);
     });
 
@@ -29,12 +30,11 @@ async function startEmailListener() {
     console.log("Inbox opened, waiting for new emails...");
 
     connection.imap.on("mail", async () => {
-      console.log("📩 New email detected");
+      console.log("New email detected");
       await readUnreadEmails(connection);
     });
 
     await readUnreadEmails(connection);
-
   } catch (err) {
     console.error("IMAP connection failed:", err.message);
   }
@@ -45,7 +45,7 @@ async function readUnreadEmails(connection) {
     const searchCriteria = ["UNSEEN"];
     const fetchOptions = {
       bodies: [""],
-      markSeen: true,
+      markSeen: false,
     };
 
     const messages = await connection.search(searchCriteria, fetchOptions);
@@ -54,23 +54,43 @@ async function readUnreadEmails(connection) {
       try {
         const rawEmail = item.parts[0].body;
         const parsedEmail = await simpleParser(rawEmail);
+        const messageId = parsedEmail.messageId;
 
-        const bodyContent =
-          parsedEmail.text ||
-          parsedEmail.html ||
-          "(No email content)";
+        // HTML to TEXT 
+        let bodyContent = "(No email content)";
 
+        if (parsedEmail.text) {
+          bodyContent = parsedEmail.text;
+        } else if (parsedEmail.html) {
+          bodyContent = htmlToText(parsedEmail.html, {
+            wordwrap: 120,
+            selectors: [
+              { selector: "img", format: "skip" }, 
+            ],
+          });
+        }
         await Email.create({
+          messageId,
           subject: parsedEmail.subject || "(No Subject)",
           body: bodyContent,
           sender: parsedEmail.from?.text || "Unknown sender",
           received_at: parsedEmail.date || new Date(),
         });
 
-        console.log("✅ Email saved:", parsedEmail.subject);
+        const uid = item.attribute.uid;
+        await connection.imap.addFlags(uid, ["\\Seen"]);
 
+        console.log(" Email saved:", parsedEmail.subject);
       } catch (emailError) {
-        console.error("Email parse error:", emailError.message);
+        if (emailError.code === 11000) {
+          console.log("Duplicate email ignored:", parsedEmail.subject);
+
+          const uid = item.attributes.uid;
+          await connection.imap.addFlags(uid, ["\\Seen"]);
+          return;
+        }
+
+        console.error("Email error:", emailError.message);
       }
     }
   } catch (err) {
